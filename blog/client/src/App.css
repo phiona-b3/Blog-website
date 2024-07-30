@@ -1,0 +1,4 @@
+.nav-link:hover {
+  color: #007bff; /* Change to your desired hover color */
+  text-decoration: underline; /* Optional: underline the text */
+}
