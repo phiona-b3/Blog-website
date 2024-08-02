@@ -4,8 +4,6 @@ import Post from './pages/Post';
 import Edit from './pages/Edit';
 import Navbar from './pages/Navbar';
 import Footer from './pages/Footer';
-//import Register from './pages/Register';
-//import Login from './pages/Login';
 import Profile from './pages/Profile';
 import SignIn from './pages/SignIn';
 import Create from './pages/Create';

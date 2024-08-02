@@ -8,7 +8,6 @@ import { ClerkProvider } from '@clerk/clerk-react';
 
 
 const clerkPubKey = process.env.REACT_APP_API_KEY;
-console.log(clerkPubKey)
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
@@ -20,7 +19,6 @@ root.render(
     </ClerkProvider>
   </React.StrictMode>
 );
-//this is create easy entry points for the components to be built for the blog
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

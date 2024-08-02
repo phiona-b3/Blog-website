@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
+//import axios from 'axios';
 import { useUser } from '@clerk/clerk-react';
+import http from '../lib/http';
 
 const Post = () => {
   const { id: postId } = useParams();
   const [post, setPost] = useState({});
   const navigate = useNavigate();
   const { user } = useUser();
-  //const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [visibleContent, setVisibleContent] = useState('');
   const [blurredContent, setBlurredContent] = useState('');
   const [comments, setComments] = useState([]);
@@ -17,24 +17,22 @@ const Post = () => {
   useEffect(() => {
     async function fetchData() {
       try {
-        const { data } = await axios.get(`http://localhost:5000/posts/${postId}`);
+        const { data } = await http.get(`/posts/${postId}`);
         setPost(data.data.post);
-        const commentsResponse = await axios.get(`http://localhost:5000/posts/${postId}/comments`);
+
+        const commentsResponse = await http.get(`/posts/${postId}/comments`);
+        console.log('Comments response:', commentsResponse.data.data.comments);
         setComments(commentsResponse.data.data.comments);
       } catch (error) {
         console.error('Error fetching post:', error);
       }
-
-      // Check if the user is authenticated
-     // const token = localStorage.getItem('token');
-      //setIsAuthenticated(!!token);
     }
     fetchData();
   }, [postId]);
 
   const deletePost = async () => {
     try {
-      await axios.delete(`http://localhost:5000/posts/${postId}`);
+      await http.delete(`/posts/${postId}`);
       navigate('/');
     } catch (error) {
       console.error('Error deleting post:', error);
@@ -51,23 +49,33 @@ const Post = () => {
 
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
-    //if (!newComment.trim()) return;
-
-   
-    const { data } = await axios.post(`http://localhost:5000/posts/${postId}/comments`, {
-      content: newComment,
-      author: user.primaryEmailAddress.emailAddress,
-    });
-    console.log('Response:', data);
-    setComments([...comments, data.comment]);
-    setNewComment('')
-    
-  }
+  
+    if (!user?.primaryEmailAddress?.emailAddress) {
+      console.error('User email is not available');
+      return;
+    }
+  
+    try {
+      const payload = {
+        content: newComment,
+        author: user.primaryEmailAddress.emailAddress,
+      }
+      const { data } = await http.post(`/posts/${postId}/comments`,  {
+        data: payload
+      });
+      console.log(data.comment)
+      setComments((prevComments) => [...prevComments, data.comment]);
+      setNewComment('');
+    } catch (error) {
+      console.error('Error posting comment:', error);
+    }
+  };
+  
 
   const renderContentWithParagraphs = (content) => {
 
     if (typeof content !== 'string') {
-      content = ''; // Provide a default value or handle the error accordingly
+      content = ''; 
     }
   
     return content.split('\n').map((paragraph, index) => (
@@ -76,23 +84,27 @@ const Post = () => {
 
   }
 
+  const imageDomain = process.env.NODE_ENV === 'production' ? 'https://your-backend-domain.com' : 'http://localhost:5000';
+
   return (
     <div className="container text-justified my-5" style={{ maxWidth: '800px' }}>
       <h1>{post.title}</h1>
       <div className="text-secondary mb-4">{new Date(post.createdAt).toLocaleDateString()}</div>
-      {post.tags?.map((tag, index) => (
-        <span key={index} className="badge bg-primary me-1">#{tag}</span>
-      ))}
       <button className="btn btn-secondary">{post.category}</button>
+      <div className="w-100">
+        {post.tags?.map((tag, index) => (
+          <span key={index} className="badge bg-primary me-1">#{tag}</span>
+        ))}
+      </div>
       {/* Display image */}
       {post.image && (
         <div className="my-4">
-          <img src={`http://localhost:5000/${post.image}`} alt={post.title} style={{ width: '60%', height: '480px' }} />
+          <img src={`${imageDomain}/${post.image}`} alt={post.title} style={{ width: '100%', height: '500px', objectFit: "cover" }} />
         </div>
       )}
-      <div className="h4 mt-5">
+      <div className="p mt-5">
         {user ? (
-          <div className="text-secondary">{renderContentWithParagraphs(post.content)}</div>
+          <div>{renderContentWithParagraphs(post.content)}</div>
         ) : (
           <div style={{ position: 'relative' }}>
             <div>
@@ -123,22 +135,22 @@ const Post = () => {
           </div>
         )}
       </div>
-      <div className="text-secondary mb-5">- {post.author}</div>
+      <div className="mb-5" style={{ color: "brown" }}>- {post.author}</div>
       <div className="mb-5">
-        <Link to={`/posts/${postId}/edit`} style={{ marginRight: "30px" }}>Edit</Link>
-        <button className="btn btn-danger" onClick={deletePost}>Delete</button>
+        <button className="btn bg-warning text-center"><Link to={`/posts/${postId}/edit`} className="text-decoration-none">Edit</Link></button>
+        <button className="btn btn-danger ms-3" onClick={deletePost}>Delete</button>
       </div>
-      <Link to='/' style={{ textDecoration: 'none' }} className="text-decoration-none">Back to Home</Link>
+      <Link to='/' style={{ textDecoration: 'none' }} className="text-decoration-none">&#8592; Back to Home</Link>
       {/* comment section */}
       <div className="comments-section mt-5">
         <h3>Comments</h3>
         {comments.length === 0 ? (
           <p>No comments yet.</p>
         ) : (
-          comments.map((comment, index) => (
+          comments.map((addcomment, index) => (
             <div key={index} className="comment mb-3">
-              <p><strong>{comment.author}</strong></p>
-              <p>{comment.content}</p>
+              <p><strong>{addcomment.author || 'unknown'}</strong></p>
+              <p>{addcomment.content || 'N0 content'}</p>
             </div>
           ))
         )}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import axios from 'axios';
+//import axios from 'axios';
+import http from '../lib/http';
 
 const Home = () => {
   const [posts, setPosts] = useState([]);
@@ -8,15 +9,15 @@ const Home = () => {
   const [startingIndex, setStartingIndex] = useState(0);
   const [endingIndex, setEndingIndex] = useState(12);
 
+
   useEffect(() => {
     async function fetchData() {
+      const imageDomain = process.env.NODE_ENV === 'production' ? 'https://your-backend-domain.com' : 'http://localhost:5000';
       try {
-        const { data } = await axios.get('http://localhost:5000/posts');
-        console.log('Fetched posts:', data); // Log fetched data for debugging
-        // Assuming data.data.posts contains an array of posts with `image` field as "uploads/image-1721135981072.png"
+        const { data } = await http.get('/posts');
         const fetchedPosts = data.data.posts.map(post => ({
           ...post,
-          image: `http://localhost:5000/${post.image}` // Constructing full image URL
+          image: `${imageDomain}/${post.image}`
         }));
         setPosts(fetchedPosts);
 
@@ -51,7 +52,9 @@ const Home = () => {
                 <Link to={`/posts/${post._id}`} style={{ textDecoration: 'none' }}>{post.title}</Link>
                 <div>
                   <div>{post.content.length > 100 ? `${post.content.slice(0, 180)}...` : post.content}</div>
-                  {post.author} - <span className="text-secondary">{new Date(post.createdAt).toLocaleString()}</span>
+                  <div className="mt-2">
+                    <h7 style={{ color: "brown" }}>{post.author}</h7> - <span className="text-secondary">{new Date(post.createdAt).toLocaleString()}</span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -68,65 +71,3 @@ const Home = () => {
 };
 
 export default Home;
-
-
-/*
-
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
-//import logo from '../images/logo.png';
-//import http from '../lib/http';
-
-const Home = () => {
-  const [posts, setPosts] = useState([]);
-  useEffect(() => {
-    async function fetchData() {
-      const { data } = await axios.get('http://localhost:5000/posts')
-      setPosts(data.data.posts)
-    }
-    fetchData();
-  }, [])
-
-  return (
-    <div className="container">
-      <div className="row">
-        {posts.map((post) => (
-          <div className="col-md-4" key={post.id} style={{ marginTop: "20px" }}>
-            <div className="card" style={{ width: "100%", marginTop: "20px", gap: "20px" }}>
-              <img src={post.imageUrl} className="card-img-top" alt={`${post.title}`} />
-              <div className="card-body">
-                <Link to={`/posts/${post._id}`} style={{ textDecoration: 'none' }}>{post.title}</Link>
-                <div>
-                  <div>{post.content.length > 100 ? post.content.slice(0, 100) + '...' : post.content}</div>
-                  {post.author} - <span className="text-secondary">{post.createdAt}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-    //<div className="container" style={{ maxWidth: '800px' }}>
-      //<ul className="list-group list-group-flush" >
-        //{posts.map((post) => (
-          //<li className="list-group-item" key={post._id}>
-            //<div className="fw-bold h3">
-              //<Link to={`/posts/${post._id}`} style={{ textDecoration: 'none' }}>
-                //{post.title}
-              //</Link>
-            //</div>
-            //<div>
-              //{post.author} - <span className="text-secondary">{post.createdAt}</span>
-            //</div>
-          //</li>
-        //))}
-      //</ul>
-    //</div>
-  )
-}
-
-export default Home
-
- 
-*/

@@ -46,7 +46,6 @@ router.post('/:postId/comments', async (req, res) => {
     postId,
     content,
     author,
-    createdAt: new Date(),
   });
 
   try {
@@ -140,11 +139,7 @@ router.put('/:id', async (req, res, next) => {
 
   const post = await Post.findByIdAndUpdate(req.params.id, { title, content, author, tags });
 
-  return res.status(200).json({
-    statusCode: 200,
-    message: 'Updated post',
-    data: { post },
-  });
+  return res.status(200).json(post)
 });
 
 //delete a post

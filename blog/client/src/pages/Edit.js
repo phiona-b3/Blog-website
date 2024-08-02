@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';
+//import axios from 'axios';
+import http from '../lib/http';
 
 
 const Edit = () => {
@@ -11,20 +12,23 @@ const Edit = () => {
 
   useEffect(() => {
     async function fetchData() {
-      const { data } = await axios.get(`http://localhost:5000/posts/${postId}`)
+      const { data } = await http.get(`/posts/${postId}`)
       reset(data.data.post)
     }
     fetchData()
   }, [postId, reset])
 
   const onSubmit = async ({ title, content, author, tags }) => {
+    const tagsString = tags ? String(tags) : '';
+    const tagsArray = tagsString.split(',').map((tag) => tag.trim());
+
     const payload = {
       title,
       content,
       author,
-      tags: tags.split(',').map((tag) => tag.trim()),
+      tags: tagsArray,
     }
-    await axios.put(`http://localhost:5000/posts/${postId}`, payload)
+    await http.put(`/posts/${postId}`, { data: payload })
     navigate(`/posts/${postId}`)
   }
 

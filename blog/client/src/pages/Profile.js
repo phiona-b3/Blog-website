@@ -1,4 +1,3 @@
-// src/components/UserProfile.js
 import React from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { Link } from 'react-router-dom';
